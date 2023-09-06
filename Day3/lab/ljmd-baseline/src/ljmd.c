@@ -109,6 +109,10 @@ static void force(mdsys_t *sys)
     double epot = 0.0;
     int i;
 
+    // double c12=4.0*sys->epsilon*pow(sys->sigma,12.0);
+    // double c6 =4.0*sys->epsilon*pow(sys->sigma, 6.0);
+    double rcsq = sys->rcut * sys->rcut;
+
     #if defined(_OPENMP)
     #pragma omp parallel for default(shared) private(i) reduction(+:epot)
     #endif
@@ -123,9 +127,10 @@ static void force(mdsys_t *sys)
             double ry=pbc(sys->ry[i] - sys->ry[j], 0.5*sys->box);
             double rz=pbc(sys->rz[i] - sys->rz[j], 0.5*sys->box);
             double r = sqrt(rx*rx + ry*ry + rz*rz);
+            double rsq = rx*rx + ry*ry + rz*rz;
 
             /* compute force and energy if within cutoff */
-            if (r < sys->rcut) {
+            if (rsq < rcsq) {
                 double ffac = -4.0*sys->epsilon*(
                     -12.0*pow(sys->sigma/r,12.0)/r +6*pow(sys->sigma/r,6.0)/r
                     );
