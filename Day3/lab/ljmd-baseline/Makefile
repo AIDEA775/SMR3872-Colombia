@@ -24,3 +24,6 @@ check-serial: serial
 
 check-openmp: openmp
 	$(MAKE) $(MFLAGS) -C examples check-openmp
+
+check-mpi: mpi
+	$(MAKE) $(MFLAGS) -C examples check-mpi
