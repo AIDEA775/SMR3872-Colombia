@@ -74,10 +74,7 @@ static double wallclock()
 /* helper function: zero out an array */
 static void azzero(double *d, const int n)
 {
-    int i;
-    for (i=0; i<n; ++i) {
-        d[i]=0.0;
-    }
+    memset(d, 0, n * sizeof(double));
 }
 
 /* helper function: apply minimum image convention */
@@ -176,7 +173,7 @@ static void output(mdsys_t *sys, FILE *erg, FILE *traj)
 {
     int i;
 
-    printf("% 8d % 20.8f % 20.8f % 20.8f % 20.8f\n", sys->nfi, sys->temp, sys->ekin, sys->epot, sys->ekin+sys->epot);
+    // printf("% 8d % 20.8f % 20.8f % 20.8f % 20.8f\n", sys->nfi, sys->temp, sys->ekin, sys->epot, sys->ekin+sys->epot);
     fprintf(erg,"% 8d % 20.8f % 20.8f % 20.8f % 20.8f\n", sys->nfi, sys->temp, sys->ekin, sys->epot, sys->ekin+sys->epot);
     fprintf(traj,"%d\n nfi=%d etot=%20.8f\n", sys->natoms, sys->nfi, sys->ekin+sys->epot);
     for (i=0; i<sys->natoms; ++i) {
@@ -184,6 +181,17 @@ static void output(mdsys_t *sys, FILE *erg, FILE *traj)
     }
 }
 
+
+static void print_omp_threads() {
+    #if defined(_OPENMP)
+    int n_threads = 1;
+    #pragma omp parallel
+    {
+        n_threads = omp_get_num_threads(); 
+    }
+    printf("Using %d OMP threads\n", n_threads);
+    #endif
+}
 
 /* main */
 int main(int argc, char **argv)
@@ -195,6 +203,7 @@ int main(int argc, char **argv)
     double t_start;
 
     printf("LJMD version %3.1f\n", LJMD_VERSION);
+    print_omp_threads();
 
     t_start = wallclock();
 
