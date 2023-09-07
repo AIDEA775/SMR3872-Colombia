@@ -12,11 +12,11 @@
 #include <math.h>
 #include <sys/time.h>
 
-#if defined(_OPENMP)
+#ifdef _OPENMP
 #include <omp.h>
 #endif
 
-#if defined(USE_MPI)
+#ifdef USE_MPI
 #include <mpi.h>
 #endif
 
@@ -36,8 +36,11 @@ struct _mdsys {
     double *rx, *ry, *rz;
     double *vx, *vy, *vz;
     double *fx, *fy, *fz; // global
+    #ifdef MPI_VERSION
     double *cx, *cy, *cz; // local
-    int mpi_size, mpi_rank; // mpi
+    int mpi_size; // mpi
+    #endif
+    int mpi_rank;
     int nprint;
 };
 typedef struct _mdsys mdsys_t;
@@ -117,6 +120,8 @@ static void force(mdsys_t *sys)
     azzero(sys->fx,sys->natoms);
     azzero(sys->fy,sys->natoms);
     azzero(sys->fz,sys->natoms);
+
+    #ifdef MPI_VERSION
     azzero(sys->cx,sys->natoms);
     azzero(sys->cy,sys->natoms);
     azzero(sys->cz,sys->natoms);
@@ -125,14 +130,21 @@ static void force(mdsys_t *sys)
     MPI_Bcast(sys->ry, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(sys->rz, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
+    const int from = sys->mpi_rank;
+    const int inc = sys->mpi_size;
+    #else
+    const int from = 0;
+    const int inc = 1;
+    #endif
+
     double epot = 0.0;
     double rcsq = sys->rcut * sys->rcut;
 
-    #if defined(_OPENMP)
+    #ifdef _OPENMP
     #pragma omp parallel for default(shared) reduction(+:epot)
     #endif
 
-    for(int i=(sys->mpi_rank); i < (sys->natoms); i+=(sys->mpi_size)) {
+    for(int i=from; i < (sys->natoms); i+=inc) {
         // printf("rank %d, atom %d\n", sys->mpi_rank, i);
         for(int j=0; j < (sys->natoms); ++j) {
 
@@ -155,16 +167,27 @@ static void force(mdsys_t *sys)
                 epot += 0.5*4.0*sys->epsilon*(pow(sys->sigma/r,12.0)
                                                -pow(sys->sigma/r,6.0));
 
+                #ifdef MPI_VERSION
                 sys->cx[i] += rx/r*ffac;
                 sys->cy[i] += ry/r*ffac;
                 sys->cz[i] += rz/r*ffac;
+                #else
+                sys->fx[i] += rx/r*ffac;
+                sys->fy[i] += ry/r*ffac;
+                sys->fz[i] += rz/r*ffac;
+                #endif
             }
         }
     }
+
+    #ifdef MPI_VERSION
     MPI_Reduce(sys->cx, sys->fx, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(sys->cy, sys->fy, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(sys->cz, sys->fz, sys->natoms, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&epot, &sys->epot, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    #else
+    sys->epot = epot;
+    #endif
 }
 
 /* velocity verlet */
@@ -198,7 +221,9 @@ static void velverlet(mdsys_t *sys)
 /* append data to output. */
 static void output(mdsys_t *sys, FILE *erg, FILE *traj)
 {
+    #ifdef PRINT_STATUS
     printf("% 8d % 20.8f % 20.8f % 20.8f % 20.8f\n", sys->nfi, sys->temp, sys->ekin, sys->epot, sys->ekin+sys->epot);
+    #endif
     fprintf(erg,"% 8d % 20.8f % 20.8f % 20.8f % 20.8f\n", sys->nfi, sys->temp, sys->ekin, sys->epot, sys->ekin+sys->epot);
     fprintf(traj,"%d\n nfi=%d etot=%20.8f\n", sys->natoms, sys->nfi, sys->ekin+sys->epot);
     for (int i=0; i<sys->natoms; ++i) {
@@ -218,6 +243,23 @@ static void print_omp_threads() {
     #endif
 }
 
+static void init_mpi(int argc, char **argv, mdsys_t* sys) {
+    #if defined(MPI_VERSION)
+    int res = MPI_Init(&argc,&argv);
+    if (res != MPI_SUCCESS) {
+        puts("problem initializing MPI");
+        exit(1);
+    }
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &sys->mpi_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &sys->mpi_size);
+
+    if (sys->mpi_rank == 0) {
+        printf(">>> Using MPI. Size: %d\n", sys->mpi_size);
+    }
+    #endif
+}
+
 /* main */
 int main(int argc, char **argv)
 {
@@ -227,28 +269,13 @@ int main(int argc, char **argv)
     mdsys_t sys;
     double t_start = wallclock();
 
-    int me = 0;
+    sys.mpi_rank = 0;
 
-    /* set up MPI environment */
-    #if defined(MPI_VERSION)
-    int res = MPI_Init(&argc,&argv);
-    if (res != MPI_SUCCESS) {
-        puts("problem initializing MPI");
-        return 1;
-    }
-
-    MPI_Comm_rank(MPI_COMM_WORLD,&me);
-    MPI_Comm_rank(MPI_COMM_WORLD, &sys.mpi_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &sys.mpi_size);
-
-    if (me == 0) {
-        printf(">>> Using MPI. Size: %d\n", sys.mpi_size);
-    }
-    #endif
-
+    /* set up environment */
+    init_mpi(argc, argv, &sys);
     print_omp_threads();
 
-    if (me == 0) {
+    if (sys.mpi_rank == 0) {
         printf("LJMD version %3.1f\n", LJMD_VERSION);
 
         t_start = wallclock();
@@ -277,7 +304,12 @@ int main(int argc, char **argv)
         sys.nprint=atoi(line);
     }
 
+    #if defined(MPI_VERSION)
     MPI_Bcast(&sys, sizeof(mdsys_t), MPI_CHAR, 0, MPI_COMM_WORLD);
+
+    /* refresh rank */
+    MPI_Comm_rank(MPI_COMM_WORLD, &sys.mpi_rank);
+    #endif
 
     /* allocate memory */
     sys.rx=(double *)malloc(sys.natoms*sizeof(double));
@@ -289,11 +321,14 @@ int main(int argc, char **argv)
     sys.fx=(double *)malloc(sys.natoms*sizeof(double));
     sys.fy=(double *)malloc(sys.natoms*sizeof(double));
     sys.fz=(double *)malloc(sys.natoms*sizeof(double));
+    
+    #ifdef MPI_VERSION
     sys.cx=(double *)malloc(sys.natoms*sizeof(double));
     sys.cy=(double *)malloc(sys.natoms*sizeof(double));
     sys.cz=(double *)malloc(sys.natoms*sizeof(double));
+    #endif
 
-    if (me == 0) {
+    if (sys.mpi_rank == 0) {
         /* read restart */
         fp=fopen(restfile,"r");
         if(fp) {
@@ -310,24 +345,20 @@ int main(int argc, char **argv)
         }
     }
 
-
-    /* refresh rank */
-    #if defined(MPI_VERSION)
-    MPI_Comm_rank(MPI_COMM_WORLD, &sys.mpi_rank);
-    #endif
-
     /* initialize forces and energies.*/
     sys.nfi=0;
     force(&sys);
     ekin(&sys);
 
-    if (me == 0) {
+    if (sys.mpi_rank == 0) {
         erg=fopen(ergfile,"w");
         traj=fopen(trajfile,"w");
 
         printf("Startup time: %10.3fs\n", wallclock()-t_start);
         printf("Starting simulation with %d atoms for %d steps.\n",sys.natoms, sys.nsteps);
+        #ifdef PRINT_STATUS
         printf("     NFI            TEMP            EKIN                 EPOT              ETOT\n");
+        #endif
         output(&sys, erg, traj);
 
         /* reset timer */
@@ -339,7 +370,7 @@ int main(int argc, char **argv)
     for(sys.nfi=1; sys.nfi <= sys.nsteps; ++sys.nfi) {
 
         /* write output, if requested */
-        if (me == 0 && (sys.nfi % sys.nprint) == 0)
+        if (sys.mpi_rank == 0 && (sys.nfi % sys.nprint) == 0)
             output(&sys, erg, traj);
 
         /* propagate system and recompute energies */
@@ -349,7 +380,7 @@ int main(int argc, char **argv)
     /**************************************************/
 
     /* clean up: close files, free memory */
-    if (me == 0) {
+    if (sys.mpi_rank == 0) {
         printf("Simulation Done. Run time: %10.3fs\n", wallclock()-t_start);
         fclose(erg);
         fclose(traj);
@@ -364,11 +395,16 @@ int main(int argc, char **argv)
     free(sys.fx);
     free(sys.fy);
     free(sys.fz);
+
+    #ifdef MPI_VERSION
     free(sys.cx);
     free(sys.cy);
     free(sys.cz);
+    #endif
 
+    #if defined(MPI_VERSION)
     MPI_Finalize();
+    #endif
 
     return 0;
 }
