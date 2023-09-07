@@ -239,7 +239,7 @@ static void print_omp_threads() {
     {
         n_threads = omp_get_num_threads(); 
     }
-    printf(">>> Using %d OMP threads\n", n_threads);
+    printf("Using %d OMP threads\n", n_threads);
     #endif
 }
 
@@ -255,7 +255,7 @@ static void init_mpi(int argc, char **argv, mdsys_t* sys) {
     MPI_Comm_size(MPI_COMM_WORLD, &sys->mpi_size);
 
     if (sys->mpi_rank == 0) {
-        printf(">>> Using MPI. Size: %d\n", sys->mpi_size);
+        printf("Using MPI. Size: %d\n", sys->mpi_size);
     }
     #endif
 }

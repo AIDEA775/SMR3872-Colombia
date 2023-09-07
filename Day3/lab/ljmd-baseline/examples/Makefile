@@ -22,6 +22,7 @@ check-serial:
 	head -10 ../reference/argon_108.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> b.dat
 	cmp a.dat b.dat || exit 1
 	rm -f a.dat b.dat
+	echo Tests OK
 
 check-openmp:
 	../ljmd-openmp.x < argon_108.inp
@@ -29,6 +30,7 @@ check-openmp:
 	head -10 ../reference/argon_108.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> b.dat
 	cmp a.dat b.dat || exit 1
 	rm -f a.dat b.dat
+	echo Tests OK
 
 check-mpi:
 	mpirun ../ljmd-mpi.x < argon_108.inp
@@ -36,3 +38,4 @@ check-mpi:
 	head -10 ../reference/argon_108.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> b.dat
 	cmp a.dat b.dat || exit 1
 	rm -f a.dat b.dat
+	echo Tests OK

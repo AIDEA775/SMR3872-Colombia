@@ -8,3 +8,10 @@ and the reference directory the corresponding outputs.
 Type: make
 to compile everything and: make clean
 to remove all compiled objects
+
+Tests:
+```
+make -s check-serial
+make -s check-openmp
+make -s check-mpi
+```
