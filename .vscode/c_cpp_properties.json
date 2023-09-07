@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/lib64/openmpi/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        },
+        {
+            "name": "MPI",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "LJMD_VERSION=1",
+                "USE_MPI"
+            ],
+            "compilerPath": "/usr/lib64/openmpi/bin/mpicc",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "${default}",
+            "compilerArgs": [],
+            "forcedInclude": []
+        }
+    ],
+    "version": 4
+}

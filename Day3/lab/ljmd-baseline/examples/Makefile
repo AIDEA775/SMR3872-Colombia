@@ -24,15 +24,15 @@ check-serial:
 	rm -f a.dat b.dat
 
 check-openmp:
-	../ljmd-openmp.x < argon_108.inp
-	head -10 argon_108.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> a.dat
-	head -10 ../reference/argon_108.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> b.dat
+	../ljmd-openmp.x < argon_2916.inp
+	head -10 argon_2916.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> a.dat
+	head -10 ../reference/argon_2916.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> b.dat
 	cmp a.dat b.dat || exit 1
 	rm -f a.dat b.dat
 
 check-mpi:
-	../ljmd-mpi.x < argon_108.inp
-	head -10 argon_108.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> a.dat
-	head -10 ../reference/argon_108.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> b.dat
+	mpirun --use-hwthread-cpus -np 2 ../ljmd-mpi.x < argon_2916.inp
+	head -10 argon_2916.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> a.dat
+	head -10 ../reference/argon_2916.dat | awk '{printf("%d %.6f %.6f %.6f\n",$$1,$$2,$$3,$$4);}'> b.dat
 	cmp a.dat b.dat || exit 1
 	rm -f a.dat b.dat

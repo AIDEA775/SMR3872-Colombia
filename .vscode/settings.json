@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "omp.h": "c",
+        "mpi.h": "c"
+    },
+    "cmake.configureOnOpen": true
+}
