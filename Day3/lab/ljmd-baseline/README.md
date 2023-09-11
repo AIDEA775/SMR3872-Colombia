@@ -11,7 +11,7 @@ to remove all compiled objects
 
 Tests:
 ```
-make -s check-serial
-make -s check-openmp
-make -s check-mpi
+make -s check impl=serial size=108
+make -s check impl=openmp size=108
+make -s check impl=mpi size=108
 ```
