@@ -21,10 +21,10 @@ check: ${impl}
 	$(MAKE) $(MFLAGS) -C examples check
 
 check-all: serial mpi openmp
-	impl=serial size=108 $(MAKE) $(MFLAGS) -C examples check
+	impl=serial $(MAKE) $(MFLAGS) -C examples check
 	echo
-	impl=openmp size=108 $(MAKE) $(MFLAGS) -C examples check
+	impl=openmp $(MAKE) $(MFLAGS) -C examples check
 	echo
-	impl=mpi size=108 $(MAKE) $(MFLAGS) -C examples check
+	impl=mpi $(MAKE) $(MFLAGS) -C examples check
 	echo
 	echo All tests OK

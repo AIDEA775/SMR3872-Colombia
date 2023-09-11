@@ -14,4 +14,7 @@ Tests:
 make -s check impl=serial size=108
 make -s check impl=openmp size=108
 make -s check impl=mpi size=108
+
+make -s check-all size=108
+make -s check-all size=2916
 ```
