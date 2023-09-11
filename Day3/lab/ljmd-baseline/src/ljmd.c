@@ -287,7 +287,7 @@ int main(int argc, char **argv) {
 
     /* set up environment */
     init_mpi(argc, argv, &sys);
-    print_omp_threads();
+    print_omp_threads(&sys);
 
     if (sys.mpi_rank == 0) {
         printf("LJMD version %3.1f\n", LJMD_VERSION);
