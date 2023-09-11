@@ -243,12 +243,18 @@ static void output(mdsys_t *sys, FILE *erg, FILE *traj) {
     }
 }
 
-static void print_omp_threads() {
+static void print_omp_threads(mdsys_t *sys) {
 #if defined(_OPENMP)
+
     int n_threads = 1;
+
 #pragma omp parallel
     { n_threads = omp_get_num_threads(); }
-    printf("Using %d OMP threads\n", n_threads);
+
+    if (sys->mpi_rank == 0) {
+        printf("Using %d OMP threads\n", n_threads);
+    }
+
 #endif
 }
 
