@@ -355,8 +355,11 @@ int main(int argc, char **argv) {
                sys.nsteps);
 #ifdef PRINT_STATUS
         printf(
-            "     NFI            TEMP            EKIN                 EPOT     "
-            "         ETOT\n");
+            "     NFI"
+            "            TEMP"
+            "            EKIN"
+            "                 EPOT"
+            "              ETOT\n");
 #endif
         output(&sys, erg, traj);
 

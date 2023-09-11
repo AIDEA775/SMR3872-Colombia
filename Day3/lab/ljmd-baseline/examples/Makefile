@@ -10,7 +10,7 @@ ifeq ($(impl), mpi)
 endif
 
 ifeq ($(impl), both)
-  runner=mpirun`
+  runner=mpirun
 endif
 
 check:
