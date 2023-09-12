@@ -1,11 +1,12 @@
 # -*- Makefile -*-
 SHELL=/bin/sh
 CC=mpicc
+#CC=icx
 CFLAGS=-Wall -g -O3 -ffast-math -fomit-frame-pointer -DLJMD_VERSION=1.0 -DUSE_MPI -DUSE_BOTH -fopenmp
 LDLIBS=-lm
 
 # list of source files
-SRC=ljmd.c
+SRC=ljmd2.c
 VPATH=../src
 OBJ=$(SRC:%.c=%.o)
 
@@ -23,4 +24,4 @@ clean:
 	$(CC) -c $(CFLAGS) $<
 
 # dependencies
-ljmd.o: ljmd.c
+ljmd2.o: ljmd2.c
