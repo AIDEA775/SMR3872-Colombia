@@ -137,17 +137,11 @@ static void force(mdsys_t *sys) {
     double rcsq = sys->rcut * sys->rcut;
 
 #ifdef _OPENMP
-#ifndef USE_BOTH
 #pragma omp parallel for default(shared) reduction(+ : epot)
 #endif
-#endif
-
     for (int i = from; i < (sys->natoms); i += inc) {
         // printf("rank %d, atom %d\n", sys->mpi_rank, i);
 
-#ifndef USE_BOTH
-#pragma omp parallel for default(shared) reduction(+ : epot)
-#endif
         for (int j = 0; j < (sys->natoms); ++j) {
             /* particles have no interactions with themselves */
             if (i == j) continue;
@@ -198,9 +192,6 @@ static void force(mdsys_t *sys) {
 static void velverlet(mdsys_t *sys) {
     /* first part: propagate velocities by half and positions by full step */
     if (sys->mpi_rank == 0) {
-#ifdef USE_BOTH
-#pragma omp parallel for default(shared)
-#endif
         for (int i = 0; i < sys->natoms; ++i) {
             sys->vx[i] += 0.5 * sys->dt / mvsq2e * sys->fx[i] / sys->mass;
             sys->vy[i] += 0.5 * sys->dt / mvsq2e * sys->fy[i] / sys->mass;
@@ -216,9 +207,6 @@ static void velverlet(mdsys_t *sys) {
 
     /* second part: propagate velocities by another half step */
     if (sys->mpi_rank == 0) {
-#ifdef USE_BOTH
-#pragma omp parallel for default(shared)
-#endif
         for (int i = 0; i < sys->natoms; ++i) {
             sys->vx[i] += 0.5 * sys->dt / mvsq2e * sys->fx[i] / sys->mass;
             sys->vy[i] += 0.5 * sys->dt / mvsq2e * sys->fy[i] / sys->mass;
