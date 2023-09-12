@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 SHELL=/bin/sh
 CC=gcc
-CFLAGS=-Wall -g -O3 -march=native -ffast-math -msse3 -fomit-frame-pointer -fopt-info -DLJMD_VERSION=1.0
+CFLAGS=-Wall -pg -O3 -march=native -ffast-math -msse3 -fopt-info -DLJMD_VERSION=1.0
 LDLIBS=-lm
 
 # list of source files
