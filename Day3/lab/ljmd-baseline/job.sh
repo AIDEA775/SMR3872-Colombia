@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH -A ICT23_SMR3872
 #SBATCH -p boost_usr_prod
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
+#SBATCH --nodes=3
+#SBATCH --ntasks-per-node=32
+#SBATCH --cpus-per-task=1
 #SBATCH --time 00:10:00
 #SBATCH --gres=gpu:0
 #SBATCH --mem=490000MB
