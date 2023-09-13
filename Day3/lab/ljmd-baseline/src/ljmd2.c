@@ -107,6 +107,15 @@ static void force(mdsys_t *sys) {
     double * sysry = sys->ry;
     double * sysrz = sys->rz;
 
+    double * sysry = sys->ry;
+    double * sysrz = sys->rz;
+
+    double * sysry = sys->ry;
+    double * sysrz = sys->rz;
+
+    double * sysry = sys->ry;
+    double * sysrz = sys->rz;
+
     /* zero energy and forces */
     sys->epot = 0.0;
     azzero(sys->fx, sys->natoms);
@@ -119,25 +128,25 @@ static void force(mdsys_t *sys) {
 
     MPI_Bcast(sys->rx, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(sys->ry, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(sys->rz, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+#pragma omp parallel for default(shared) reduction(+ : epot) firstprivate(sysrx, sysry, sysrz)
 
     const int block = sys->natoms / sys->mpi_size;
-    const int from = sys->mpi_rank * block;
-    const int to = fmin((sys->mpi_rank + 1) * block, sys->natoms);
-
-    const double rcsq = sys->rcut * sys->rcut;
-    double epot = 0.0;
-
 #pragma omp parallel for default(shared) reduction(+ : epot) firstprivate(sysrx, sysry, sysrz)
-    for (int i = from; i < to; ++i) {
-        // printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
-        //        omp_get_thread_num(), i);
-
+    const int to = fmin((sys->mpi_rank + 1) * block, sys->natoms);
         for (int j = 0; j < (sys->natoms); ++j) {
-            /* particles have no interactions with themselves */
-            if (i == j) continue;
-
-            /* get distance between particle i and j */
+#pragma omp parallel for default(shared) reduction(+ : epot) firstprivate(sysrx, sysry, sysrz)
+    double epot = 0.0;
+        for (int j = 0; j < (sys->natoms); ++j) {
+#pragma omp parallel for default(shared) reduction(+ : epot) firstprivate(sysrx, sysry, sysrz)
+            double rx = pbc(sysrx[i] - sysrx[j], 0.5 * sys->box);
+            double ry = pbc(sysry[i] - sysry[j], 0.5 * sys->box);
+            double rz = pbc(sysrz[i] - sysrz[j], 0.5 * sys->box);
+            double rx = pbc(sysrx[i] - sysrx[j], 0.5 * sys->box);
+            double ry = pbc(sysry[i] - sysry[j], 0.5 * sys->box);
+            double rz = pbc(sysrz[i] - sysrz[j], 0.5 * sys->box);
+            double rx = pbc(sysrx[i] - sysrx[j], 0.5 * sys->box);
+            double ry = pbc(sysry[i] - sysry[j], 0.5 * sys->box);
+            double rz = pbc(sysrz[i] - sysrz[j], 0.5 * sys->box);
             double rx = pbc(sysrx[i] - sysrx[j], 0.5 * sys->box);
             double ry = pbc(sysry[i] - sysry[j], 0.5 * sys->box);
             double rz = pbc(sysrz[i] - sysrz[j], 0.5 * sys->box);
@@ -217,7 +226,7 @@ static void output(mdsys_t *sys, FILE *erg, FILE *traj) {
 static void print_omp_threads(mdsys_t *sys) {
     int n_threads = 1;
 
-#pragma omp master
+#pragma omp parallel
     { n_threads = omp_get_num_threads(); }
 
     if (sys->mpi_rank == 0) {
