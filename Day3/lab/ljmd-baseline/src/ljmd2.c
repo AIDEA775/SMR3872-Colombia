@@ -130,8 +130,8 @@ static void force(mdsys_t *sys) {
 
 #pragma omp parallel for default(shared) reduction(+ : epot) firstprivate(sysrx, sysry, sysrz)
     for (int i = from; i < to; ++i) {
-        // printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
-        //        omp_get_thread_num(), i);
+        printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
+               omp_get_thread_num(), i);
 
         for (int j = 0; j < (sys->natoms); ++j) {
             /* particles have no interactions with themselves */
@@ -217,7 +217,7 @@ static void output(mdsys_t *sys, FILE *erg, FILE *traj) {
 static void print_omp_threads(mdsys_t *sys) {
     int n_threads = 1;
 
-#pragma omp master
+#pragma omp parallel
     { n_threads = omp_get_num_threads(); }
 
     if (sys->mpi_rank == 0) {
