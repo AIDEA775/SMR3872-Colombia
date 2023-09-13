@@ -123,10 +123,10 @@ static void force(mdsys_t *sys) {
     double epot = 0.0;
     double rcsq = sys->rcut * sys->rcut;
 
+#pragma omp parallel for default(shared) reduction(+ : epot)
     for (int i = from; i < (sys->natoms); i += inc) {
         // printf("rank %d, atom %d\n", sys->mpi_rank, i);
 
-#pragma omp parallel for default(shared) reduction(+ : epot)
         for (int j = 0; j < (sys->natoms); ++j) {
             /* particles have no interactions with themselves */
             if (i == j) continue;
