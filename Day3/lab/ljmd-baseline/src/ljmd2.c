@@ -117,16 +117,17 @@ static void force(mdsys_t *sys) {
     MPI_Bcast(sys->ry, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(sys->rz, sys->natoms, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    const int from = sys->mpi_rank;
-    const int inc = sys->mpi_size;
+    const int block = sys->natoms / sys->mpi_size;
+    const int from = sys->mpi_rank * block;
+    const int to = fmin((sys->mpi_rank + 1) * block, sys->natoms);
 
     double epot = 0.0;
     double rcsq = sys->rcut * sys->rcut;
 
 #pragma omp parallel for default(shared) reduction(+ : epot)
-    for (int i = from; i < (sys->natoms); i += inc) {
-        printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
-               omp_get_thread_num(), i);
+    for (int i = from; i < to; i += 1) {
+        // printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
+        //        omp_get_thread_num(), i);
 
         for (int j = 0; j < (sys->natoms); ++j) {
             /* particles have no interactions with themselves */
