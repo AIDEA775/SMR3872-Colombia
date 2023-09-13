@@ -103,7 +103,10 @@ static void ekin(mdsys_t *sys) {
 static void force(mdsys_t *sys) {
     // printf("run force: rank %d, size %d\n", sys->mpi_rank, sys->mpi_size);
 
-    const int natoms = sys->natoms;
+    double * sysrx = sys->rx;
+    double * sysry = sys->ry;
+    double * sysrz = sys->rz;
+
     /* zero energy and forces */
     sys->epot = 0.0;
     azzero(sys->fx, sys->natoms);
@@ -125,19 +128,19 @@ static void force(mdsys_t *sys) {
     const double rcsq = sys->rcut * sys->rcut;
     double epot = 0.0;
 
-#pragma omp parallel for default(shared) reduction(+ : epot)
+#pragma omp parallel for default(shared) reduction(+ : epot) firstprivate(sysrx, sysry, sysrz)
     for (int i = from; i < to; ++i) {
         // printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
         //        omp_get_thread_num(), i);
 
-        for (int j = 0; j < natoms; ++j) {
+        for (int j = 0; j < (sys->natoms); ++j) {
             /* particles have no interactions with themselves */
             if (i == j) continue;
 
             /* get distance between particle i and j */
-            double rx = pbc(sys->rx[i] - sys->rx[j], 0.5 * sys->box);
-            double ry = pbc(sys->ry[i] - sys->ry[j], 0.5 * sys->box);
-            double rz = pbc(sys->rz[i] - sys->rz[j], 0.5 * sys->box);
+            double rx = pbc(sysrx[i] - sysrx[j], 0.5 * sys->box);
+            double ry = pbc(sysry[i] - sysry[j], 0.5 * sys->box);
+            double rz = pbc(sysrz[i] - sysrz[j], 0.5 * sys->box);
             double r = sqrt(rx * rx + ry * ry + rz * rz);
             double rsq = rx * rx + ry * ry + rz * rz;
 
@@ -214,7 +217,7 @@ static void output(mdsys_t *sys, FILE *erg, FILE *traj) {
 static void print_omp_threads(mdsys_t *sys) {
     int n_threads = 1;
 
-#pragma omp parallel
+#pragma omp master
     { n_threads = omp_get_num_threads(); }
 
     if (sys->mpi_rank == 0) {
