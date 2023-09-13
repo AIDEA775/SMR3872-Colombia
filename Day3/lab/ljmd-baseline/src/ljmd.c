@@ -140,7 +140,8 @@ static void force(mdsys_t *sys) {
 #pragma omp parallel for default(shared) reduction(+ : epot)
 #endif
     for (int i = from; i < (sys->natoms); i += inc) {
-        // printf("rank %d, atom %d\n", sys->mpi_rank, i);
+        printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
+               omp_get_thread_num(), i);
 
         for (int j = 0; j < (sys->natoms); ++j) {
             /* particles have no interactions with themselves */
