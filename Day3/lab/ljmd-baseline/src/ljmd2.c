@@ -125,7 +125,7 @@ static void force(mdsys_t *sys) {
     double rcsq = sys->rcut * sys->rcut;
 
 #pragma omp parallel for default(shared) reduction(+ : epot)
-    for (int i = from; i < to; i += 1) {
+    for (int i = from; i < to; ++i) {
         // printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
         //        omp_get_thread_num(), i);
 
