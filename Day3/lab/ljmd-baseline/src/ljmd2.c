@@ -103,6 +103,7 @@ static void ekin(mdsys_t *sys) {
 static void force(mdsys_t *sys) {
     // printf("run force: rank %d, size %d\n", sys->mpi_rank, sys->mpi_size);
 
+    const int natoms = sys->natoms;
     /* zero energy and forces */
     sys->epot = 0.0;
     azzero(sys->fx, sys->natoms);
@@ -121,16 +122,15 @@ static void force(mdsys_t *sys) {
     const int from = sys->mpi_rank * block;
     const int to = fmin((sys->mpi_rank + 1) * block, sys->natoms);
 
+    const double rcsq = sys->rcut * sys->rcut;
     double epot = 0.0;
-    double rcsq = sys->rcut * sys->rcut;
 
-    int i = from;
-#pragma omp parallel for default(shared) private(i) reduction(+ : epot)
-    for (i = from; i < to; ++i) {
+#pragma omp parallel for default(shared) reduction(+ : epot)
+    for (int i = from; i < to; ++i) {
         // printf("rank %d, thread %d, atom %d\n", sys->mpi_rank,
         //        omp_get_thread_num(), i);
 
-        for (int j = 0; j < (sys->natoms); ++j) {
+        for (int j = 0; j < natoms; ++j) {
             /* particles have no interactions with themselves */
             if (i == j) continue;
 
