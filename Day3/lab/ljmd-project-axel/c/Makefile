@@ -167,4 +167,25 @@ bench3:
 	    time mpirun -np $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_78732.inp >> /dev/null; \
 	done; done
 
+
+# run on 1 node, multiple threads
+bench3a:
+	@m=1; for t in 1 2 4 16 32; \
+	    do for s in both; do \
+	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_78732.inp"; \
+	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_78732.inp >> /dev/null; \
+	done; done
+# run 1 mpi process by node
+bench3b:
+	@m=2; for t in 32; \
+	    do for s in both; do \
+	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_78732.inp"; \
+	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_78732.inp >> /dev/null; \
+	done; done
+	@m=4; for t in 32; \
+	    do for s in both; do \
+	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_78732.inp"; \
+	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_78732.inp >> /dev/null; \
+	done; done
+
 .PHONY: clean bench bench1 bench2 bench3
