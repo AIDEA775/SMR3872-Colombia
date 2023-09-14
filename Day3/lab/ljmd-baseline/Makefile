@@ -30,27 +30,17 @@ check-all: serial mpi openmp
 	echo All tests OK
 
 bench2:
-	@for t in 1 2 4 8 16 32; \
-	    do for s in openmp; do \
-	    echo "env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp"; \
-	    time env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
-	done; done
-	@for t in 1 2 4 8 16 32; \
-	    do for s in mpi; do \
-	    echo "srun -n $$t ./ljmd-$$s.x < argon_2916.inp" ; \
-	    time srun -n $$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
-	done; done
-	@m=1; for t in 1 2 4; \
+	@m=1; for t in 1 2 4 16 32; \
 	    do for s in both; do \
 	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp"; \
 	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
 	done; done
-	@m=2; for t in 1 4 16 32; \
+	@m=2; for t in 32; \
 	    do for s in both; do \
 	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp"; \
 	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
 	done; done
-	@m=4; for t in 1 4 16 32; \
+	@m=4; for t in 32; \
 	    do for s in both; do \
 	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp"; \
 	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
