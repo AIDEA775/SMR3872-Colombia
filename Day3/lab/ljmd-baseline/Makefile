@@ -33,18 +33,18 @@ check-all: serial mpi openmp
 bench2a:
 	@m=1; for t in 1 2 4 16 32; \
 	    do for s in both; do \
-	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp"; \
-	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
+	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ../ljmd-$$s.x < argon_2916.inp"; \
+	    time srun -n $$m env OMP_NUM_THREADS=$$t ../ljmd-$$s.x < argon_2916.inp >> /dev/null; \
 	done; done
 # run one mpi process by node
 bench2b:
 	@m=2; for t in 32; \
 	    do for s in both; do \
-	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp"; \
-	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
+	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ../ljmd-$$s.x < argon_2916.inp"; \
+	    time srun -n $$m env OMP_NUM_THREADS=$$t ../ljmd-$$s.x < argon_2916.inp >> /dev/null; \
 	done; done
 	@m=4; for t in 32; \
 	    do for s in both; do \
-	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp"; \
-	    time srun -n $$m env OMP_NUM_THREADS=$$t ./ljmd-$$s.x < argon_2916.inp >> /dev/null; \
+	    echo "srun -n $$m env OMP_NUM_THREADS=$$t ../ljmd-$$s.x < argon_2916.inp"; \
+	    time srun -n $$m env OMP_NUM_THREADS=$$t ../ljmd-$$s.x < argon_2916.inp >> /dev/null; \
 	done; done
